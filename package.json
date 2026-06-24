@@ -1,0 +1,61 @@
+{
+  "name": "@estebanforge/pi-ts-review",
+  "version": "1.0.0",
+  "description": "TypeScript / React code-review tool for Pi. Grades your git diffs against a focused TS + React rubric (2 sections, 14 entries: TypeScript type-system + React/JSX semantic mistakes). Targets .ts/.mts/.cts/.tsx. Each entry has a bad/good pair; the LLM proposes a corrected snippet. Focuses on flaws typescript-eslint (strict) + eslint-plugin-react-hooks do NOT reliably catch. Rules grounded in confirmed online sources (Effective TypeScript, typescript-eslint, react.dev), documented in the README. Not a linter; pairs with those linters.",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "typescript",
+    "react",
+    "tsx",
+    "jsx",
+    "code-review",
+    "code-reviewer",
+    "anti-patterns",
+    "code-smells",
+    "rubric",
+    "git-diff"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "EstebanForge",
+    "email": "esteban@attitude.cl",
+    "url": "https://actitud.xyz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EstebanForge/pi-ts-review.git"
+  },
+  "type": "module",
+  "files": [
+    "extensions",
+    "README.md"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-tui": "*",
+    "@types/node": "^22.0.0",
+    "typebox": "*",
+    "typescript": "^5.8.0"
+  }
+}
