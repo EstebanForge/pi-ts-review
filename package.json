@@ -1,6 +1,6 @@
 {
   "name": "@estebanforge/pi-ts-review",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript / React code-review tool for Pi. Grades your git diffs against a focused TS + React rubric (2 sections, 14 entries: TypeScript type-system + React/JSX semantic mistakes). Targets .ts/.mts/.cts/.tsx. Each entry has a bad/good pair; the LLM proposes a corrected snippet. Focuses on flaws typescript-eslint (strict) + eslint-plugin-react-hooks do NOT reliably catch. Rules grounded in confirmed online sources (Effective TypeScript, typescript-eslint, react.dev), documented in the README. Not a linter; pairs with those linters.",
   "keywords": [
     "pi-package",
