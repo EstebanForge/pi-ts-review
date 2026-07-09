@@ -1,6 +1,6 @@
 # TypeScript / React Review Rubric
 
-Floor: **TypeScript 5.x**. Targets `.ts` / `.mts` / `.cts` / `.tsx`. Covers two domains: **TypeScript type-system mistakes** and **React/JSX semantic mistakes**. Focuses on flaws that **typescript-eslint** (strict) and **eslint-plugin-react-hooks** do *not* reliably catch (effect cleanup, races, derived state, mutation, stale updaters, unsafe casts, render falsiness) — not the ones those linters already enforce. Each entry: severity tag, one-line rationale, and a bad→good pair (the good side is the fix template). Cite the **entry number** (e.g. `#5`), quote **file:line**, categorize (Bug / Suggestion / Nit), propose a corrected snippet. Only flag what's actually present. Note Good patterns. End with **Verdict**: Approve / Request Changes / Needs Discussion.
+Floor: **TypeScript 5.x**. Targets `.ts` / `.mts` / `.cts` / `.tsx` / `.jsx`. Covers two domains: **TypeScript type-system mistakes** and **React/JSX semantic mistakes**. Focuses on flaws that **typescript-eslint** (strict) and **eslint-plugin-react-hooks** do *not* reliably catch (effect cleanup, races, derived state, mutation, stale updaters, unsafe casts, render falsiness) — not the ones those linters already enforce. Each entry: severity tag, one-line rationale, and a bad→good pair (the good side is the fix template). Cite the **entry number** (e.g. `#5`), quote **file:line**, categorize (Bug / Suggestion / Nit), propose a corrected snippet. Only flag what's actually present. Note Good patterns. End with **Verdict**: Approve / Request Changes / Needs Discussion.
 
 ---
 
@@ -79,3 +79,23 @@ Calling a setter directly in the component body (not in an effect/handler) re-re
 An object/array/function created in render is a new reference each render; listing it in a deps array makes the effect re-run every render. `exhaustive-deps` adds deps but never warns that an included dep is unstable.
 - bad:  `useEffect(() => { run(filterFn); }, [filterFn]);` // filterFn is a fresh arrow each render → effect refires every render
 - good: stabilize that one dependency (hoist it, keep it in state, or wrap just it in `useCallback`) so its reference is stable — not blanket-memoizing everything.
+
+### #15 Untrusted URL in `href` / `src` (`javascript:` XSS) [Bug]
+React escapes text children but does NOT sanitize URL schemes — a user-supplied `javascript:` URL runs as script. eslint does not catch this.
+- bad:  `<a href={userUrl}>link</a>` // userUrl = `javascript:alert(document.cookie)`
+- good: allowlist the scheme (and host) before binding: `const u = new URL(userUrl); return (u.protocol === "http:" || u.protocol === "https:") ? <a href={u.href}>link</a> : null;`
+
+### #16 Auth token in `localStorage` / `sessionStorage` [Bug]
+A single XSS exfiltrates every token held in Web Storage. Prefer HttpOnly cookies, or short-lived in-memory tokens with refresh.
+- bad:  `localStorage.setItem("token", jwt);` // readable by any injected script
+- good: store the session in an HttpOnly cookie (CSRF-protected), or keep a short-lived token in memory and refresh via an HttpOnly refresh cookie.
+
+### #17 Inline object/array/callback props to a memoized child [Suggestion]
+`React.memo` compares props with `Object.is`; an object/array/arrow recreated in render is a new reference each render, so the memoized child never bails out. Distinct from #14 (that's hook deps; this is render props).
+- bad:  `<Row style={{ padding: 8 }} onClick={() => pick(item.id)} />` // fresh refs every render → memo defeated
+- good: hoist static objects to module scope (`const ROW_STYLE = { padding: 8 };`) and `useCallback` the callbacks a memoized child actually reads.
+
+### #18 Context `value` recreated every render [Suggestion]
+A context provider given an inline object/array as `value` pushes a new reference to every consumer on each render, re-rendering them all even when nothing they read changed.
+- bad:  `<UserCtx.Provider value={{ user, setUser }}>` // new object each render → all consumers re-render
+- good: `const value = useMemo(() => ({ user, setUser }), [user, setUser]); return <UserCtx.Provider value={value}>` — or split state and dispatch into separate providers.

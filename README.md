@@ -1,6 +1,6 @@
 # @estebanforge/pi-ts-review
 
-TypeScript / React code review against a focused **TS + React rubric**. Registers a `ts_review` tool that reads git diffs, filters to `.ts`/`.mts`/`.cts`/`.tsx`, and attaches the rubric (14 entries across 2 sections: TypeScript types + React/JSX). The rubric targets flaws that **typescript-eslint** (strict) and **eslint-plugin-react-hooks** do *not* reliably catch. Every rule is grounded in a confirmed online source — see [Sources](#sources).
+TypeScript / React code review against a focused **TS + React rubric**. Registers a `ts_review` tool that reads git diffs, filters to `.ts`/`.mts`/`.cts`/`.tsx`/`.jsx`, and attaches the rubric (18 entries across 2 sections: TypeScript types + React/JSX, including security and performance flaws). The rubric targets flaws that **typescript-eslint** (strict) and **eslint-plugin-react-hooks** do *not* reliably catch. Every rule is grounded in a confirmed online source — see [Sources](#sources).
 
 Sibling to [`@estebanforge/pi-go-review`](https://github.com/EstebanForge/pi-go-review), [`pi-php-review`](https://github.com/EstebanForge/pi-php-review), [`pi-rust-review`](https://github.com/EstebanForge/pi-rust-review), and [`pi-js-review`](https://github.com/EstebanForge/pi-js-review). Pair with `typescript-eslint` and `eslint-plugin-react-hooks` for lint coverage; this tool focuses on the semantic mistakes those linters may not flag.
 
@@ -28,8 +28,8 @@ Narrow scope with `path` (a file or directory). The tool runs `git` **from** tha
 
 ## What it does
 
-1. Reads the git diff filtered to `*.ts` / `*.mts` / `*.cts` / `*.tsx`.
-2. Attaches the TS + React rubric (14 entries, 2 sections).
+1. Reads the git diff filtered to `*.ts` / `*.mts` / `*.cts` / `*.tsx` / `*.jsx`.
+2. Attaches the TS + React rubric (18 entries, 2 sections).
 3. The LLM reviews the diff and returns findings that **propose a corrected snippet**:
 
 | Severity | Meaning |
@@ -48,7 +48,7 @@ Each finding cites the entry number (e.g. **#6**), the file + code fragment, and
 | 1. TypeScript Types | #1 - #3 |
 | 2. React / JSX | #4 - #14 |
 
-Scope note: this rubric deliberately **excludes** mistakes that `typescript-eslint` (strict) and `eslint-plugin-react-hooks` already enforce (e.g. `any`, non-null `!`, Rules of Hooks, `exhaustive-deps`, `@ts-expect-error` via `ban-ts-comment`). It targets the semantic gaps those linters miss: effect cleanup, fetch races, unstable effect deps, derived state, direct state mutation, stale updaters, unsafe `as` casts, falsy `&&` render, `dangerouslySetInnerHTML`.
+Scope note: this rubric deliberately **excludes** mistakes that `typescript-eslint` (strict) and `eslint-plugin-react-hooks` already enforce (e.g. `any`, non-null `!`, Rules of Hooks, `exhaustive-deps`, `@ts-expect-error` via `ban-ts-comment`). It targets the semantic gaps those linters miss: effect cleanup, fetch races, unstable effect deps, derived state, direct state mutation, stale updaters, unsafe `as` casts, falsy `&&` render, `dangerouslySetInnerHTML`, plus React-specific **security** and **performance** flaws (URL injection, token storage, memoization-defeating inline props, context re-renders).
 
 ## Sources
 
@@ -70,6 +70,10 @@ The rubric's rules were validated against confirmed online sources during resear
 | 12 | Index-as-key | React — [Rendering Lists](https://react.dev/learn/rendering-lists) |
 | 13 | setState in render loop | React — [Components and Hooks must be pure](https://react.dev/reference/rules/components-and-hooks-must-be-pure) |
 | 14 | Unstable value in deps array | React — [Removing Effect Dependencies](https://react.dev/learn/removing-effect-dependencies) |
+| 15 | Untrusted URL in `href`/`src` | Pragmatic Web Security — [Preventing XSS in React (Part 1): Data binding and URLs](https://pragmaticwebsecurity.com/articles/spasecurity/react-xss-part1.html) · OWASP [XSS Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) |
+| 16 | Auth token in `localStorage` | OWASP — [HTML5 Web Storage Security](https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#local-storage) · IETF [OAuth 2.0 for Browser-Based Apps](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps) |
+| 17 | Inline props vs `React.memo` | React — [`memo` reference](https://react.dev/reference/react/memo) · LogRocket [The React pattern everyone uses that quietly kills performance](https://blog.logrocket.com/react-pattern-everyone-uses-kills-performance/) |
+| 18 | Context `value` recreated | Kent C. Dodds — [How to optimize your context value](https://kentcdodds.com/blog/how-to-optimize-your-context-value) |
 
 Primary authorities: [Effective TypeScript (Dan Vanderkam)](https://github.com/danvk/effective-typescript), [typescript-eslint](https://typescript-eslint.io/), [React docs (react.dev)](https://react.dev/), [Total TypeScript](https://www.totaltypescript.com/).
 

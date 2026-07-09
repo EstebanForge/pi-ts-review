@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.0 — 2026-07-09
+
+### Added
+- **`.jsx` is now reviewed** (React/JSX domain): the tool filters to
+  `.ts`/`.mts`/`.cts`/`.tsx`/`.jsx`. Plain `.js`/`.mjs`/`.cjs` stay with
+  pi-js-review. The React rubric (#4-#14) applies identically to `.jsx` and
+  `.tsx`, so this closes the gap where untyped JSX had no owner.
+- **Four new rubric entries** covering React-specific security and
+  performance flaws that linters miss:
+  - #15 Untrusted URL in `href`/`src` (`javascript:` XSS) — React escapes
+    text children but not URL schemes.
+  - #16 Auth token in `localStorage`/`sessionStorage` — one XSS exfiltrates
+    every token.
+  - #17 Inline object/array/callback props to a memoized child — defeats
+    `React.memo`'s `Object.is` prop check (distinct from unstable effect
+    deps in #14).
+  - #18 Context `value` recreated every render — fans re-renders to all
+    consumers.
+
+### Changed
+- Rubric grows 14 → 18 entries. User-facing labels and docs updated to
+  "TS/TSX/JSX".
+
 ## 1.0.1 — 2026-06-30
 
 ### Fixed

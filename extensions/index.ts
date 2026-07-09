@@ -6,7 +6,7 @@
  * JSX). The LLM reviews the diff, flags flaws, AND proposes a corrected snippet
  * for each finding.
  *
- * Targets `.ts` / `.mts` / `.cts` / `.tsx` (TypeScript, including JSX).
+* Targets `.ts` / `.mts` / `.cts` / `.tsx` / `.jsx` (TypeScript, plus JSX with or without types).
  *
  * Features:
  *   - Reviews staged, unstaged, commit, or range diffs filtered to TS files
@@ -90,14 +90,14 @@ export default function (pi: ExtensionAPI) {
 		label: "TS Review",
 		description:
 			"Review TypeScript / React code changes against a focused TS + React rubric. " +
-			"Reads git diffs (staged, unstaged, commits, or ranges), filters to .ts/.mts/.cts/.tsx files, " +
+			"Reads git diffs (staged, unstaged, commits, or ranges), filters to .ts/.mts/.cts/.tsx/.jsx files, " +
 			"and returns the diff alongside the rubric (numbered entries, each a bad/good pair). " +
 			"Each finding cites the entry number (e.g. #5) AND proposes a corrected snippet modeled on the good example. " +
 			"Use this whenever reviewing TypeScript or React/JSX code, PRs, or changes before committing.",
 		promptSnippet: "Review TypeScript / React code changes and propose corrected snippets from the TS + React rubric",
 		promptGuidelines: [
 			"Use ts_review when the user asks to review TypeScript, React, or JSX/TSX code, or audit a TS/React PR.",
-			"Targets .ts/.mts/.cts/.tsx. Plain .js/.mjs/.cjs use pi-js-review; .jsx (no types) too.",
+			"Targets .ts/.mts/.cts/.tsx/.jsx (React/JSX domain). Plain .js/.mjs/.cjs use pi-js-review.",
 			"After receiving the diff and rubric, analyze every changed TS/TSX file against relevant entries.",
 			"For each finding: cite the entry number (e.g. #5), give file:line/code fragment, categorize (Bug/Critical, Suggestion, Nit), AND propose a corrected snippet modeled on the entry's good example.",
 			"Rubric deliberately excludes mistakes typescript-eslint (strict) and eslint-plugin-react-hooks already enforce; flag only the semantic gaps those linters miss.",
@@ -113,7 +113,7 @@ export default function (pi: ExtensionAPI) {
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
 			const { mode, ref, path: filePath } = params;
-			const EXTS = [".ts", ".mts", ".cts", ".tsx"];
+			const EXTS = [".ts", ".mts", ".cts", ".tsx", ".jsx"];
 			const EXT_ALT = EXTS.map((e) => e.slice(1)).join("|"); // "ts|mts|cts|tsx"
 			const MAX_LINES = 1500;
 			const hasExt = (p: string) => EXTS.some((e) => p.endsWith(e));
@@ -179,7 +179,7 @@ export default function (pi: ExtensionAPI) {
 			const base = { mode, ref, path: filePath };
 			if (!result.stdout.trim()) {
 				return {
-					content: [{ type: "text" as const, text: "No TS/TSX file changes found. Try: staged, working, all, commit, or range." }],
+					content: [{ type: "text" as const, text: "No TS/TSX/JSX file changes found. Try: staged, working, all, commit, or range." }],
 					details: { ...base, insertions: 0, deletions: 0, tsFilesFound: 0, truncated: false } satisfies TsReviewDetails,
 				};
 			}
@@ -200,7 +200,7 @@ export default function (pi: ExtensionAPI) {
 			const text = [
 				`## TS/React Code Review: ${mode}${ref ? " " + ref : ""}${filePath ? ` (${filePath})` : ""}`,
 				"",
-				`**${tsFilesFound}** TS/TSX files, **+${insertions}** / **-${deletions}**`,
+				`**${tsFilesFound}** TS/TSX/JSX files, **+${insertions}** / **-${deletions}**`,
 				"",
 				"### Diff",
 				"",
@@ -250,7 +250,7 @@ export default function (pi: ExtensionAPI) {
 			const details = result.details as TsReviewDetails | undefined;
 			if (!details || details.tsFilesFound === 0) return new Text(theme.fg("dim", "No TS/React changes found"), 0, 0);
 
-			let summary = theme.fg("accent", details.tsFilesFound + " TS/TSX files");
+			let summary = theme.fg("accent", details.tsFilesFound + " TS/TSX/JSX files");
 			summary += theme.fg("dim", " | ") + theme.fg("success", "+" + details.insertions) + theme.fg("dim", "/") + theme.fg("error", "-" + details.deletions);
 			summary += theme.fg("dim", " | ") + theme.fg("muted", "TS + React rubric");
 			if (details.truncated) summary += theme.fg("warning", " (truncated)");
